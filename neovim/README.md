@@ -1,5 +1,7 @@
 How to use :
-docker run -it \
+
+	docker run -it \
+
         -v $HOME:/home \ #working directory
 
         -v ~/projects/containers/neovim/config/neovim:/root/.config/neovim \ #plugins vim

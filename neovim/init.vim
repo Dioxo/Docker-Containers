@@ -16,15 +16,6 @@ set clipboard+=unnamedplus
 
 set mouse=a " Enable mouse usage (all modes) in terminals
 
-"Closing format 
-inoremap " ""<left>
-inoremap ' ''<left>
-inoremap ( ()<left>
-inoremap [ []<left>
-inoremap { {}<left>
-inoremap {<CR> {<CR>}<ESC>O
-inoremap {;<CR> {<CR>};<ESC>O
-
 call plug#begin('~/.config/neovim/plugged')
 "Oceanic with js, ts and html
 Plug 'mhartington/oceanic-next'

@@ -9,29 +9,38 @@ RUN  apt update && apt upgrade -y && \
   apt install -y ${BUILD_APT_DEPS} && \
   git clone https://github.com/neovim/neovim.git /tmp/neovim && \
   cd /tmp/neovim && \
-	git checkout tags/${TARGET} && \
+  git checkout tags/${TARGET} && \
   make CMAKE_BUILD_TYPE=Release && \
   make CMAKE_INSTALL_PREFIX=/usr/local install && \
   strip /usr/local/bin/nvim && \
   cd ~ && \
-  rm -rf /tmp/neovim && \
-  apt purge -y ${BUILD_APT_DEPS} && apt autoremove -y --purge && \
-  mkdir -p /root/.config/nvim
+  rm -rf /tmp/neovim
 
-RUN apt install -y git nodejs python curl python3-pip && \
+
+# dependencies for my neovim
+RUN apt install -y nodejs python curl python3-pip && \
 	curl -fsSL https://deb.nodesource.com/setup_14.x | bash - && \
-	apt-get install -y nodejs && \
-	sh -c 'curl -fLo /root/.config/nvim/autoload/plug.vim --create-dirs \
-	   https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
+	apt-get install -y nodejs 
 
 RUN pip3 install --user --upgrade pynvim
-
 RUN npm install -g neovim
 
-ENV XDG_CONFIG_HOME="/root/.config"
-ENV XDG_DATA_HOME="/root/.config"
+RUN useradd --create-home dioxo && \
+  chown -R dioxo /usr/lib/node_modules
 
-COPY init.vim coc-settings.json /root/.config/nvim/
-#docker run -it -v $HOME:/home -v ~/projects/containers/neovim/ext/neovim:/root/.config/neovim -v ~/projects/containers/neovim/ext/coc:/root/.config/coc neovim
+RUN apt purge -y ${BUILD_APT_DEPS} && apt autoremove -y --purge
+USER dioxo
+
+ARG CONFIG_PATH="/home/dioxo/.config"
+
+RUN sh -c 'curl -fLo "${CONFIG_PATH}"/nvim/site/autoload/plug.vim --create-dirs \
+       https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
+
+COPY init.vim coc-settings.json ${CONFIG_PATH}/
+
+ENV XDG_CONFIG_HOME=${CONFIG_PATH}
+ENV XDG_DATA_HOME=${CONFIG_PATH}
+
+RUN nvim --headless +PlugInstall +qall
 
 CMD ["/usr/local/bin/nvim"]

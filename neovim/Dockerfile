@@ -24,7 +24,6 @@ RUN apt install -y git nodejs python curl python3-pip && \
 	sh -c 'curl -fLo /root/.config/nvim/autoload/plug.vim --create-dirs \
 	   https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
 
-RUN pip3 install --user --upgrade pynvim
 
 RUN npm install -g neovim
 
@@ -32,8 +31,20 @@ ENV XDG_CONFIG_HOME="/root/.config"
 ENV XDG_DATA_HOME="/root/.config"
 
 COPY init.vim coc-settings.json /root/.config/nvim/
-#docker run -it -v $HOME:/home -v ~/projects/containers/neovim/ext/neovim:/root/.config/neovim -v ~/projects/containers/neovim/ext/coc:/root/.config/coc neovim
+#docker run -it -v $HOME:/root -v ~/projects/containers/neovim/ext/neovim:/root/.config/neovim -v ~/projects/containers/neovim/ext/coc:/root/.config/coc neovim
 
 RUN nvim --headless +PlugInstall +qall
+
+ARG USER_ID
+ARG GROUP_ID
+
+RUN addgroup --gid $GROUP_ID user
+RUN adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID user
+RUN chown -R user:user /root
+RUN chown -R user:user /usr
+
+USER user
+
+RUN pip3 install --user --upgrade pynvim
 
 CMD ["/usr/local/bin/nvim"]

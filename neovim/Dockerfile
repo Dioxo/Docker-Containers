@@ -16,25 +16,28 @@ RUN  apt update && apt upgrade -y && \
   cd ~ && \
   rm -rf /tmp/neovim
 
+ARG CONFIG_PATH="/home/dioxo/.config"
+
+RUN useradd --create-home dioxo
 
 # dependencies for my neovim
-RUN apt install -y nodejs python curl python3-pip && \
+RUN apt install -y git nodejs python curl python3-pip && \
 	curl -fsSL https://deb.nodesource.com/setup_14.x | bash - && \
-	apt-get install -y nodejs 
+	apt-get install -y nodejs && \
+	chown -R dioxo /usr/lib/node_modules
+
+#RUN curl -fLo /home/dioxo/.config/nvim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+
+RUN sh -c 'curl -vfLo "${CONFIG_PATH}/nvim/autoload/plug.vim" --create-dirs \
+       https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
+
+RUN chown -R dioxo /home/dioxo
 
 RUN pip3 install --user --upgrade pynvim
 RUN npm install -g neovim
 
-RUN useradd --create-home dioxo && \
-  chown -R dioxo /usr/lib/node_modules
-
 RUN apt purge -y ${BUILD_APT_DEPS} && apt autoremove -y --purge
 USER dioxo
-
-ARG CONFIG_PATH="/home/dioxo/.config"
-
-RUN sh -c 'curl -fLo "${CONFIG_PATH}"/nvim/site/autoload/plug.vim --create-dirs \
-       https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
 
 COPY init.vim coc-settings.json ${CONFIG_PATH}/
 
